@@ -11,7 +11,7 @@ except ImportError:
     SSL_CONTEXT = ssl.create_default_context()
 
 B2_API = 'https://api.backblazeb2.com/b2api/v2'
-BUCKET_NAME = 'mindfold-data'
+BUCKET_NAME = 'notebook-pwa'
 CORS_RULES = json.load(open('b2-cors.json', encoding='utf-8'))
 
 
