@@ -1,7 +1,14 @@
 import base64
 import getpass
 import json
+import ssl
 import urllib.request
+
+try:
+    import certifi
+    SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
+except ImportError:
+    SSL_CONTEXT = ssl.create_default_context()
 
 B2_API = 'https://api.backblazeb2.com/b2api/v2'
 BUCKET_NAME = 'notebook-pwa'
@@ -17,7 +24,7 @@ def request(url, payload=None, token=None, basic=None):
         encoded = base64.b64encode(f'{basic[0]}:{basic[1]}'.encode()).decode()
         headers['Authorization'] = f'Basic {encoded}'
     request = urllib.request.Request(url, data=body, headers=headers)
-    with urllib.request.urlopen(request) as response:
+    with urllib.request.urlopen(request, context=SSL_CONTEXT) as response:
         return json.loads(response.read())
 
 
