@@ -17,3 +17,7 @@ python3 server.py
 - 节点文字、配色、缩放、导出 SVG
 - 本地 localStorage 自动保存
 - Service Worker 离线缓存，可安装为 PWA
+
+## GitHub Pages
+
+仓库包含 `.github/workflows/deploy-pages.yml`。创建 `picfik-dot/notebook-pwa` 后推送 `main` 分支，GitHub Actions 会自动发布；在仓库 Settings > Pages 中将 Source 设为 GitHub Actions。
