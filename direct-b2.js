@@ -47,14 +47,18 @@
     const serviceKey = await hmac(regionKey, 's3');
     const signingKey = await hmac(serviceKey, 'aws4_request');
     headers.Authorization = `AWS4-HMAC-SHA256 Credential=${auth.keyId}/${scope}, SignedHeaders=${signedHeaders}, Signature=${hex(await hmac(signingKey, stringToSign))}`;
-    return fetch(endpoint, { method, headers, body: payload.length ? payload : undefined });
+    const response = await fetch(endpoint, { method, headers, body: payload.length ? payload : undefined });
+    if (!response.ok) {
+      const detail = await response.clone().text();
+      throw new Error(`B2 ${response.status}: ${detail.slice(0, 180)}`);
+    }
+    return response;
   }
 
-  async function stateGet() { const response = await request('GET', 'mindfold-state.json'); return response.ok ? response.json() : {}; }
-  async function statePut(value) { const response = await request('PUT', 'mindfold-state.json', JSON.stringify(value, null, 2)); if (!response.ok) throw new Error(`B2 state ${response.status}`); }
+  async function stateGet() { return (await request('GET', 'mindfold-state.json')).json(); }
+  async function statePut(value) { await request('PUT', 'mindfold-state.json', JSON.stringify(value, null, 2)); }
   async function files() {
     const response = await request('GET', '', new Uint8Array(), '?list-type=2&prefix=attachments%2F');
-    if (!response.ok) throw new Error(`B2 list ${response.status}`);
     const xml = await response.text();
     return [...xml.matchAll(/<Key>([^<]+)<\/Key>\s*<Size>(\d+)<\/Size>\s*<ETag>([^<]+)<\/ETag>/g)].map(match => ({ path: match[1], name: match[1].split('/').pop(), size: Number(match[2]), sha: match[3].replaceAll('"', '') }));
   }
