@@ -2,7 +2,7 @@
   const config = {
     endpoint: window.MINDFOLD_B2_ENDPOINT,
     region: window.MINDFOLD_B2_REGION || 'us-east-005',
-    bucket: window.MINDFOLD_B2_BUCKET || 'notebook-pwa'
+    bucket: window.MINDFOLD_B2_BUCKET || 'mindfold-data'
   };
   let credentials = JSON.parse(sessionStorage.getItem('mindfold-b2-credentials') || 'null');
 

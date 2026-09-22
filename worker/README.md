@@ -4,7 +4,7 @@
 
 ## 1. 创建 Backblaze B2 Bucket
 
-使用你的私有 Bucket `notebook-pwa`，选择与你的 B2 账户匹配的区域。这个 Bucket 保存：
+使用你的私有 Bucket `mindfold-data`，选择与你的 B2 账户匹配的区域。这个 Bucket 保存：
 
 - `mindfold-state.json`：思维导图、多画布数据
 - `attachments/`：上传的附件
