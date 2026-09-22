@@ -22,6 +22,7 @@ python3 server.py
 - 12 种节点颜色和鼠标滚轮缩放
 - 本地 Python 服务开启后，多终端每 3 秒自动同步数据
 - 可选 Cloudflare Worker + 私有 GitHub 数据仓库：同步导图并上传附件
+- 可选 GitHub Pages 直连 B2：每个浏览器会话首次使用时输入 B2 凭据
 
 ## 多终端同步
 
@@ -40,6 +41,8 @@ python3 configure_b2_cors.py
 ```
 
 脚本会在终端安全读取 B2 Key ID 和 Application Key，自动为 `notebook-pwa` 写入 `b2-cors.json` 中的规则。密钥不会写入项目，也不要提交到 GitHub。浏览器直连 B2 的写入模式会暴露凭据，生产环境仍建议使用 Worker 代理。
+
+直连模式已经启用：每个终端首次使用时点击“登录云端”，输入 B2 Key ID 和 Application Key。凭据只存放在当前浏览器标签页的 `sessionStorage`，关闭标签页后清除。此模式会把写入权限交给浏览器，适合个人使用，不适合公开分享页面。
 
 ## GitHub Pages
 
