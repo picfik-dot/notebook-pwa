@@ -21,10 +21,15 @@ python3 server.py
 - 中心节点一键回到画布中心
 - 12 种节点颜色和鼠标滚轮缩放
 - 本地 Python 服务开启后，多终端每 3 秒自动同步数据
+- 可选 Cloudflare Worker + 私有 GitHub 数据仓库：同步导图并上传附件
 
 ## 多终端同步
 
 在同一台电脑或局域网环境中运行 `python3 server.py`，多个终端访问同一个服务地址即可同步。跨互联网同步需要把 Python 服务部署到一台可访问的服务器；GitHub Pages 本身是静态托管，不能直接保存和同步用户数据，因此未登录本地服务时会自动使用浏览器本地保存。
+
+## 云端附件与编辑
+
+项目包含 `worker/` 目录，用于部署 Cloudflare Worker。配置后，页面可以登录 GitHub，将导图数据和附件保存到私有 GitHub 数据仓库。图片和 PDF 可在线预览，Markdown、纯文本、JSON 和代码文件可在线编辑保存，Office 等其他文件支持上传和下载。部署步骤见 `worker/README.md`。
 
 ## GitHub Pages
 

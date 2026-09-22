@@ -1,0 +1,14 @@
+name = "mindfold-sync"
+main = "worker.js"
+compatibility_date = "2026-09-22"
+
+[vars]
+APP_ORIGIN = "https://picfik-dot.github.io"
+APP_URL = "https://picfik-dot.github.io/notebook-pwa/"
+GITHUB_OWNER = "picfik-dot"
+GITHUB_REPO = "mindfold-data"
+GITHUB_BRANCH = "main"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "replace-with-your-kv-namespace-id"

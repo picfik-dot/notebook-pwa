@@ -8,6 +8,16 @@ const inspector = $('#inspector');
 const nodeText = $('#node-text');
 const toast = $('#toast');
 const mapList = $('#map-list');
+const attachmentList = $('#attachment-list');
+const uploadInput = $('#attachment-upload');
+const nodeInspector = $('#node-inspector');
+const fileInspector = $('#file-inspector');
+const fileMeta = $('#file-meta');
+const fileImage = $('#file-image');
+const filePdf = $('#file-pdf');
+const fileEditor = $('#file-editor');
+const fileSave = $('#file-save');
+const fileDownload = $('#file-download');
 let zoom = 1;
 let selectedId = 'root';
 let map = { title: '我的第一个想法', nodes: [
@@ -21,17 +31,28 @@ let dragging = null;
 let panning = null;
 let panX = 0;
 let panY = 0;
-const SYNC_URL = `${location.origin}/api/state`;
+const SYNC_ORIGIN = window.MINDFOLD_SYNC_ORIGIN || location.origin;
+const SYNC_URL = `${SYNC_ORIGIN}/api/state`;
 let syncing = false;
 let maps = {};
 let activeMapId = 'default';
+let attachments = [];
+let selectedFile = null;
 const colors = ['coral','blue','mint','yellow','lavender','peach','teal','rose','lilac','lime','slate','ink'];
 
 function showToast(message){ toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(()=>toast.classList.remove('show'), 1800); }
+function apiOptions(options={}){ return {...options, credentials:'include'}; }
 function save(){ maps[activeMapId]=map; localStorage.setItem('mindfold-maps', JSON.stringify({maps,activeMapId})); stateLabel.textContent='已保存'; clearTimeout(save.timer); save.timer=setTimeout(()=>syncRemote(),250); }
 function load(){ try { const stored=JSON.parse(localStorage.getItem('mindfold-maps')); if(stored?.maps){maps=stored.maps;activeMapId=stored.activeMapId||Object.keys(maps)[0];map=maps[activeMapId];} else { const old=JSON.parse(localStorage.getItem('mindfold-map')); if(old?.nodes?.length){maps={default:old};map=old;} } } catch {} if(!map?.nodes?.length){maps={default:map};} titleInput.value=map.title; }
-async function syncRemote(){ if(syncing)return; syncing=true; try{ const response=await fetch(SYNC_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({maps,activeMapId})}); if(response.ok) stateLabel.textContent='已同步'; }catch{} finally{syncing=false;} }
-async function pullRemote(){ try{const response=await fetch(SYNC_URL,{cache:'no-store'}); if(!response.ok)return; const remote=await response.json(); if(remote?.maps&&JSON.stringify(remote.maps)!==JSON.stringify(maps)){maps=remote.maps;activeMapId=remote.activeMapId||Object.keys(maps)[0];map=maps[activeMapId];titleInput.value=map.title;render();showToast('已同步最新数据');}}catch{} }
+async function syncRemote(){ if(syncing)return; syncing=true; try{ const response=await fetch(SYNC_URL,apiOptions({method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({maps,activeMapId})})); if(response.ok) stateLabel.textContent='已同步'; }catch{} finally{syncing=false;} }
+async function pullRemote(){ try{const response=await fetch(SYNC_URL,apiOptions({cache:'no-store'})); if(!response.ok)return; const remote=await response.json(); if(remote?.maps&&JSON.stringify(remote.maps)!==JSON.stringify(maps)){maps=remote.maps;activeMapId=remote.activeMapId||Object.keys(maps)[0];map=maps[activeMapId];titleInput.value=map.title;render();showToast('已同步最新数据');}}catch{} }
+async function loadAttachments(){ try{const response=await fetch(`${SYNC_ORIGIN}/api/files`,apiOptions({cache:'no-store'})); if(response.ok){attachments=await response.json();renderAttachments();}}catch{} }
+function renderAttachments(){ attachmentList.innerHTML=attachments.length?attachments.map(file=>`<button class="attachment-item ${selectedFile?.path===file.path?'active':''}" data-file-path="${file.path}">${file.name}</button>`).join(''):'<span class="empty-attachments">暂无附件</span>'; }
+function isTextFile(file){ return /\.(txt|md|markdown|json|csv|js|ts|py|html|css|xml|yaml|yml)$/i.test(file.name); }
+async function openFile(path){ const response=await fetch(`${SYNC_ORIGIN}/api/file?path=${encodeURIComponent(path)}`,apiOptions()); if(!response.ok){showToast('请先配置云端同步服务');return;} selectedFile=await response.json(); const name=selectedFile.name||path; fileMeta.textContent=name; nodeInspector.hidden=true; fileInspector.hidden=false; fileImage.hidden=true; filePdf.hidden=true; fileEditor.hidden=true; fileDownload.hidden=true; fileSave.hidden=true; const raw=selectedFile.content; if(/\.(png|jpe?g|gif|webp|svg)$/i.test(name)){fileImage.src=`data:${mimeFor(name)};base64,${raw}`;fileImage.hidden=false;} else if(/\.pdf$/i.test(name)){filePdf.src=`data:application/pdf;base64,${raw}`;filePdf.hidden=false;} else if(isTextFile({name})){fileEditor.value=decodeBase64(raw);fileEditor.hidden=false;fileSave.hidden=false;} else {fileDownload.hidden=false;} renderAttachments(); }
+function mimeFor(name){const ext=name.split('.').pop().toLowerCase();return {png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml'}[ext]||'application/octet-stream';}
+function decodeBase64(value){return decodeURIComponent(escape(atob(value)));}
+async function uploadFile(file){const path=`attachments/${file.name}`; const content=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=reject;reader.readAsDataURL(file);}); const response=await fetch(`${SYNC_ORIGIN}/api/file`,apiOptions({method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path,content})})); if(!response.ok){showToast('上传需要配置云端同步服务');return;} showToast('附件已上传'); loadAttachments();}
 function nodeById(id){ return map.nodes.find(n=>n.id===id); }
 function fitPoint(node){ return { x: node.x * zoom, y: node.y * zoom }; }
 function render(){
@@ -61,8 +82,11 @@ function deleteMap(id){ const ids=Object.keys(maps); if(ids.length===1){showToas
 function exportPng(){ const data=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700"><rect width="100%" height="100%" fill="#f4f1e8"/><text x="48" y="58" font-family="Georgia" font-size="28" font-weight="bold">${map.title}</text>${map.nodes.map(n=>`<rect x="${n.x+300}" y="${n.y+100}" width="160" height="54" rx="12" fill="${n.color==='coral'?'#f3b09e':n.color==='blue'?'#b8d3e0':n.color==='mint'?'#b8d2c6':n.color==='yellow'?'#f2dda0':'#363934'}"/><text x="${n.x+318}" y="${n.y+132}" font-family="Georgia" font-size="15">${n.text.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</text>`).join('')}</svg>`; const blob=new Blob([data],{type:'image/svg+xml'}); const link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download=`${map.title||'mindmap'}.svg`; link.click(); showToast('已导出 SVG 文件'); }
 
 $('#add-child').onclick=()=>addNode('child'); $('#add-sibling').onclick=()=>addNode('sibling'); $('#delete-node').onclick=deleteSelected; $('#center-root').onclick=centerRoot; $('#zoom-in').onclick=()=>setZoom(zoom+.1); $('#zoom-out').onclick=()=>setZoom(zoom-.1); $('#zoom-fit').onclick=()=>setZoom(1); $('#export-button').onclick=exportPng; $('#share-button').onclick=()=>{navigator.clipboard?.writeText(location.href);showToast('链接已复制');}; $('#new-map').onclick=()=>{const id=`map-${Date.now()}`;map={title:'未命名画布',nodes:[{id:'root',text:'从这里开始',x:390,y:230,color:'coral',parent:null,root:true}]};maps[id]=map;activeMapId=id;selectedId='root';render();}; $('#close-inspector').onclick=()=>inspector.classList.toggle('closed'); $('#theme-toggle').onclick=()=>document.body.classList.toggle('night');
+$('#cloud-login').onclick=()=>{window.location.href=`${SYNC_ORIGIN}/auth/login`;};
 titleInput.oninput=()=>{map.title=titleInput.value;save()}; nodeText.oninput=()=>{const node=nodeById(selectedId);if(node){node.text=nodeText.value;const el=layer.querySelector(`[data-id="${selectedId}"]`);if(el)el.textContent=node.text;drawConnections();save();}};
 document.querySelectorAll('.swatch').forEach(s=>s.onclick=()=>{const n=nodeById(selectedId);n.color=s.dataset.color;render()}); document.querySelectorAll('.segmented button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.segmented button').forEach(x=>x.classList.remove('active'));b.classList.add('active')}); document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tool]').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
 canvas.addEventListener('dblclick',e=>{if(e.target!==canvas&&e.target!==layer)return; const rect=canvas.getBoundingClientRect(); map.nodes.push({id:`node-${Date.now()}`,text:'新的想法',x:(e.clientX-rect.left-panX)/zoom-65,y:(e.clientY-rect.top-panY)/zoom-24,color:'yellow',parent:null}); selectedId=map.nodes.at(-1).id;render();}); canvas.addEventListener('pointerdown',e=>{if(e.target!==canvas&&e.target!==layer)return; panning={x:e.clientX,y:e.clientY,panX,panY}; canvas.classList.add('dragging'); try{canvas.setPointerCapture(e.pointerId)}catch{}}); canvas.addEventListener('pointermove',e=>{if(!panning)return; panX=panning.panX+(e.clientX-panning.x); panY=panning.panY+(e.clientY-panning.y); layer.style.transform=`translate(${panX}px,${panY}px) scale(${zoom})`; svg.style.transform=`translate(${panX}px,${panY}px)`;}); canvas.addEventListener('wheel',e=>{e.preventDefault(); const rect=canvas.getBoundingClientRect(); const oldZoom=zoom; const nextZoom=Math.min(1.6,Math.max(.55,zoom+(e.deltaY<0?.1:-.1))); const x=e.clientX-rect.left; const y=e.clientY-rect.top; panX=x-(x-panX)*(nextZoom/oldZoom); panY=y-(y-panY)*(nextZoom/oldZoom); zoom=nextZoom; $('#zoom-label').textContent=`${Math.round(zoom*100)}%`; layer.style.transform=`translate(${panX}px,${panY}px) scale(${zoom})`; svg.style.transform=`translate(${panX}px,${panY}px)`; drawConnections(); save();},{passive:false}); canvas.addEventListener('pointerup',()=>{panning=null; canvas.classList.remove('dragging'); save();}); canvas.addEventListener('pointercancel',()=>{panning=null; canvas.classList.remove('dragging');}); document.addEventListener('pointermove',e=>{if(dragging)drag(e);}); document.addEventListener('pointerup',stopDrag); document.addEventListener('pointercancel',stopDrag);
 mapList.addEventListener('click',e=>{const mapButton=e.target.closest('[data-map-id]'); const deleteButton=e.target.closest('[data-delete-map]'); if(mapButton)switchMap(mapButton.dataset.mapId); if(deleteButton)deleteMap(deleteButton.dataset.deleteMap);}); document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;if(e.key==='Tab'){e.preventDefault();addNode('child')}else if(e.key==='Enter')addNode('sibling');else if(e.key==='Backspace'||e.key==='Delete')deleteSelected();else if(e.key===' '){e.preventDefault();canvas.focus();showToast('画布已聚焦')}else if(e.key==='Escape')selectedId='root';}); window.addEventListener('resize',drawConnections); load(); render(); pullRemote(); setInterval(pullRemote,3000);
+attachmentList.addEventListener('click',e=>{const item=e.target.closest('[data-file-path]');if(item)openFile(item.dataset.filePath);}); uploadInput.addEventListener('change',e=>Array.from(e.target.files).forEach(uploadFile)); fileDownload.addEventListener('click',()=>{if(!selectedFile)return;const link=document.createElement('a');link.href=`data:application/octet-stream;base64,${selectedFile.content}`;link.download=selectedFile.name;link.click();}); fileSave.addEventListener('click',async()=>{if(!selectedFile)return;const content=btoa(unescape(encodeURIComponent(fileEditor.value)));const response=await fetch(`${SYNC_ORIGIN}/api/file`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:selectedFile.path,sha:selectedFile.sha,content})});if(response.ok){showToast('文件已保存');openFile(selectedFile.path);}else showToast('保存失败，请检查云端授权');});
+window.addEventListener('resize',drawConnections); load(); render(); pullRemote(); loadAttachments(); setInterval(pullRemote,3000);
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
