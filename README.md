@@ -39,7 +39,7 @@ python3 server.py
 python3 configure_b2_cors.py
 ```
 
-脚本会在终端安全读取 B2 Key ID 和 Application Key，自动为 `mindfold-data` 写入 `b2-cors.json` 中的规则。密钥不会写入项目，也不要提交到 GitHub。浏览器直连 B2 的写入模式会暴露凭据，生产环境仍建议使用 Worker 代理。
+脚本会在终端安全读取 B2 Key ID 和 Application Key，自动为 `notebook-pwa` 写入 `b2-cors.json` 中的规则。密钥不会写入项目，也不要提交到 GitHub。浏览器直连 B2 的写入模式会暴露凭据，生产环境仍建议使用 Worker 代理。
 
 ## GitHub Pages
 

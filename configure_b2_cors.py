@@ -4,7 +4,7 @@ import json
 import urllib.request
 
 B2_API = 'https://api.backblazeb2.com/b2api/v2'
-BUCKET_NAME = 'mindfold-data'
+BUCKET_NAME = 'notebook-pwa'
 CORS_RULES = json.load(open('b2-cors.json', encoding='utf-8'))
 
 
