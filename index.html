@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4f1e8" />
+  <meta name="description" content="Canvas mind map workspace" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Mindfold | 思维工作台</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">M</span><span>Mindfold</span></div>
+    <div class="doc-title"><input id="map-title" value="我的第一个想法" aria-label="思维导图标题" /><span id="save-state">已保存</span></div>
+    <div class="top-actions"><button class="icon-button" id="theme-toggle" title="切换主题" aria-label="切换主题">◐</button><button class="outline-button" id="export-button">导出 PNG</button><button class="primary-button" id="share-button">分享</button></div>
+  </header>
+  <main class="workspace">
+    <aside class="sidebar">
+      <div class="sidebar-heading"><span>我的画布</span><button class="new-map" id="new-map" title="新建画布">+</button></div>
+      <nav class="map-list" id="map-list"></nav>
+      <div class="sidebar-foot"><div class="tip"><span class="tip-icon">✦</span><div><strong>把想法摊开</strong><p>按空格添加子节点<br />拖拽画布自由探索</p></div></div></div>
+    </aside>
+    <section class="board-shell">
+      <div class="board-toolbar">
+        <div class="tool-group"><button class="tool active" data-tool="select" title="选择 (V)">↖</button><button class="tool" data-tool="hand" title="平移 (H)">✋</button><span class="divider"></span><button class="tool" id="add-child" title="添加子节点 (Tab)">⊕</button><button class="tool" id="add-sibling" title="添加同级节点 (Enter)">⊞</button><button class="tool" id="delete-node" title="删除节点 (Backspace)">⌫</button></div>
+        <div class="zoom-group"><button class="zoom-button" id="zoom-out">−</button><span id="zoom-label">100%</span><button class="zoom-button" id="zoom-in">+</button><button class="zoom-button" id="zoom-fit" title="适应画布">⌗</button></div>
+      </div>
+      <div id="canvas" class="canvas" tabindex="0"><svg id="connections" class="connections"></svg><div id="nodes-layer" class="nodes-layer"></div><div class="canvas-hint">双击空白处创建中心节点</div></div>
+      <div class="statusbar"><span><span class="status-dot"></span> 离线可用</span><span id="node-count">5 个节点</span><span class="keyboard-hint"><kbd>Tab</kbd> 子节点 <kbd>Enter</kbd> 同级 <kbd>Space</kbd> 聚焦</span></div>
+    </section>
+    <aside class="inspector" id="inspector"><div class="inspector-heading"><span>节点样式</span><button class="close-inspector" id="close-inspector">×</button></div><div class="inspector-content"><label>节点文本</label><textarea id="node-text" rows="3" placeholder="写下你的想法..."></textarea><label>颜色</label><div class="swatches" id="swatches"><button data-color="coral" class="swatch coral"></button><button data-color="blue" class="swatch blue"></button><button data-color="mint" class="swatch mint"></button><button data-color="yellow" class="swatch yellow"></button><button data-color="ink" class="swatch ink"></button></div><label>连接方向</label><div class="segmented"><button class="active" data-direction="right">向右</button><button data-direction="left">向左</button><button data-direction="both">双向</button></div><div class="inspector-note">选中节点后，使用快捷键快速组织你的思路。</div></div></aside>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script src="app.js?v=2"></script>
+</body>
+</html>
