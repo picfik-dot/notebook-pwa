@@ -1,0 +1,19 @@
+[
+  {
+    "corsRuleName": "mindfold-pages",
+    "allowedOrigins": [
+      "https://picfik-dot.github.io",
+      "http://localhost:8000",
+      "http://127.0.0.1:8000"
+    ],
+    "allowedOperations": [
+      "s3_get",
+      "s3_put",
+      "s3_delete",
+      "s3_head"
+    ],
+    "allowedHeaders": ["*"],
+    "exposeHeaders": ["ETag"],
+    "maxAgeSeconds": 3600
+  }
+]

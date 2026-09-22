@@ -5,8 +5,8 @@ compatibility_date = "2026-09-22"
 [vars]
 APP_ORIGIN = "https://picfik-dot.github.io"
 APP_URL = "https://picfik-dot.github.io/notebook-pwa/"
-B2_ENDPOINT = "https://s3.us-west-004.backblazeb2.com"
-B2_REGION = "us-west-004"
+B2_ENDPOINT = "https://s3.us-east-005.backblazeb2.com"
+B2_REGION = "us-east-005"
 B2_BUCKET = "mindfold-data"
 
 [[kv_namespaces]]

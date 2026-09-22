@@ -31,6 +31,16 @@ python3 server.py
 
 项目包含 `worker/` 目录，用于部署 Cloudflare Worker。配置后，页面可以登录 GitHub，将导图数据和附件保存到私有 GitHub 数据仓库。图片和 PDF 可在线预览，Markdown、纯文本、JSON 和代码文件可在线编辑保存，Office 等其他文件支持上传和下载。部署步骤见 `worker/README.md`。
 
+## B2 CORS 自动配置
+
+如果改用浏览器直连 B2，可在本机执行：
+
+```bash
+python3 configure_b2_cors.py
+```
+
+脚本会在终端安全读取 B2 Key ID 和 Application Key，自动为 `mindfold-data` 写入 `b2-cors.json` 中的规则。密钥不会写入项目，也不要提交到 GitHub。浏览器直连 B2 的写入模式会暴露凭据，生产环境仍建议使用 Worker 代理。
+
 ## GitHub Pages
 
 仓库包含 `.github/workflows/deploy-pages.yml`。创建 `picfik-dot/notebook-pwa` 后推送 `main` 分支，GitHub Actions 会自动发布；在仓库 Settings > Pages 中将 Source 设为 GitHub Actions。
