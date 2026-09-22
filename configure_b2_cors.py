@@ -24,8 +24,13 @@ def request(url, payload=None, token=None, basic=None):
         encoded = base64.b64encode(f'{basic[0]}:{basic[1]}'.encode()).decode()
         headers['Authorization'] = f'Basic {encoded}'
     request = urllib.request.Request(url, data=body, headers=headers)
-    with urllib.request.urlopen(request, context=SSL_CONTEXT) as response:
-        return json.loads(response.read())
+    try:
+        with urllib.request.urlopen(request, context=SSL_CONTEXT) as response:
+            return json.loads(response.read())
+    except urllib.error.HTTPError as error:
+        if error.code == 401:
+            raise SystemExit('B2 认证失败：请确认 Application Key 已完整输入，且与 Key ID 属于同一个 B2 密钥。')
+        raise
 
 
 key_id = input('B2 Key ID: ').strip()
