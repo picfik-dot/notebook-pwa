@@ -4,7 +4,8 @@
     region: window.MINDFOLD_B2_REGION || 'us-east-005',
     bucket: window.MINDFOLD_B2_BUCKET || 'notebook-pwa'
   };
-  let credentials = JSON.parse(sessionStorage.getItem('mindfold-b2-credentials') || 'null');
+  const CREDENTIALS_KEY = 'mindfold-b2-credentials';
+  let credentials = JSON.parse(localStorage.getItem(CREDENTIALS_KEY) || 'null');
 
   function askCredentials(interactive = true) {
     if (credentials?.keyId && credentials?.applicationKey) return credentials;
@@ -14,7 +15,7 @@
     const applicationKey = prompt('请输入 B2 Application Key（不会保存到项目）');
     if (!applicationKey) throw new Error('B2 credentials required');
     credentials = { keyId: keyId.trim(), applicationKey: applicationKey.trim() };
-    sessionStorage.setItem('mindfold-b2-credentials', JSON.stringify(credentials));
+    localStorage.setItem(CREDENTIALS_KEY, JSON.stringify(credentials));
     return credentials;
   }
 
@@ -74,7 +75,7 @@
   async function fileGet(path) { const response = await request('GET', path); if (!response.ok) throw new Error(`B2 file ${response.status}`); return { path, name: path.split('/').pop(), content: base64(await response.arrayBuffer()) }; }
   async function filePut(path, content) { const response = await request('PUT', path, fromBase64(content)); if (!response.ok) throw new Error(`B2 save ${response.status}`); }
   async function filePost(path, content) { const response = await request('PUT', path, fromBase64(content)); if (!response.ok) throw new Error(`B2 upload ${response.status}`); }
-  function clear() { credentials = null; sessionStorage.removeItem('mindfold-b2-credentials'); }
+  function clear() { credentials = null; localStorage.removeItem(CREDENTIALS_KEY); }
   async function testConnection() { await stateGet(); return true; }
   window.MindfoldB2 = { stateGet, statePut, files, fileGet, filePut, filePost, askCredentials, testConnection, clear };
 })();
