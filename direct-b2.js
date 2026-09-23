@@ -6,8 +6,9 @@
   };
   let credentials = JSON.parse(sessionStorage.getItem('mindfold-b2-credentials') || 'null');
 
-  function askCredentials() {
+  function askCredentials(interactive = true) {
     if (credentials?.keyId && credentials?.applicationKey) return credentials;
+    if (!interactive) throw new Error('B2 credentials required');
     const keyId = prompt('请输入 B2 Key ID（本次浏览器会话使用）');
     if (!keyId) throw new Error('B2 credentials required');
     const applicationKey = prompt('请输入 B2 Application Key（不会保存到项目）');
@@ -26,8 +27,8 @@
   }
   function encodePath(path) { return path.split('/').map(encodeURIComponent).join('/'); }
 
-  async function request(method, path = '', body = new Uint8Array(), query = '') {
-    const auth = askCredentials();
+  async function request(method, path = '', body = new Uint8Array(), query = '', interactive = true) {
+    const auth = askCredentials(interactive);
     const endpoint = new URL(`${config.endpoint.replace(/\/$/, '')}/${encodeURIComponent(config.bucket)}/${encodePath(path)}${query}`);
     const payload = bytes(body);
     const amzDate = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
@@ -58,10 +59,10 @@
     return response;
   }
 
-  async function stateGet() { return (await request('GET', 'mindfold-state.json')).json(); }
-  async function statePut(value) { await request('PUT', 'mindfold-state.json', JSON.stringify(value, null, 2)); }
+  async function stateGet() { return (await request('GET', 'mindfold-state.json', new Uint8Array(), '', false)).json(); }
+  async function statePut(value) { await request('PUT', 'mindfold-state.json', JSON.stringify(value, null, 2), '', false); }
   async function files() {
-    const response = await request('GET', '', new Uint8Array(), '?list-type=2&prefix=attachments%2F');
+    const response = await request('GET', '', new Uint8Array(), '?list-type=2&prefix=attachments%2F', false);
     const xml = await response.text();
     return [...xml.matchAll(/<Key>([^<]+)<\/Key>\s*<Size>(\d+)<\/Size>\s*<ETag>([^<]+)<\/ETag>/g)].map(match => ({ path: match[1], name: match[1].split('/').pop(), size: Number(match[2]), sha: match[3].replaceAll('"', '') }));
   }

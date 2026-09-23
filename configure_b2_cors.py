@@ -30,7 +30,15 @@ def request(url, payload=None, token=None, basic=None, stage='B2 API'):
     except urllib.error.HTTPError as error:
         detail = error.read().decode('utf-8', errors='replace').strip()
         if error.code == 401:
+            if stage == 'b2_list_buckets':
+                raise SystemExit(
+                    f'{stage} 返回 401。当前 Application Key 没有列出 Bucket 的管理权限。\n'
+                    '请使用 B2 主 Application Key，或使用包含 listBuckets 及更新桶配置权限的管理 Key。\n'
+                    '网页直连 B2 使用的受限读写 Key 不能用于配置 CORS。'
+                )
             raise SystemExit(f'{stage} 返回 401。B2 详情：{detail or "无错误详情"}\n请检查 Application Key 是否包含对应权限。')
+        if error.code == 400:
+            raise SystemExit(f'{stage} 返回 400。B2 详情：{detail or "无错误详情"}\n请检查 b2-cors.json 的 CORS 字段格式。')
         raise
 
 
