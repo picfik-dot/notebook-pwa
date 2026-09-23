@@ -72,5 +72,6 @@
   async function filePut(path, content) { const response = await request('PUT', path, fromBase64(content)); if (!response.ok) throw new Error(`B2 save ${response.status}`); }
   async function filePost(path, content) { const response = await request('PUT', path, fromBase64(content)); if (!response.ok) throw new Error(`B2 upload ${response.status}`); }
   function clear() { credentials = null; sessionStorage.removeItem('mindfold-b2-credentials'); }
-  window.MindfoldB2 = { stateGet, statePut, files, fileGet, filePut, filePost, askCredentials, clear };
+  async function testConnection() { await files(); return true; }
+  window.MindfoldB2 = { stateGet, statePut, files, fileGet, filePut, filePost, askCredentials, testConnection, clear };
 })();
