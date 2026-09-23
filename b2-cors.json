@@ -12,7 +12,12 @@
       "s3_delete",
       "s3_head"
     ],
-    "allowedHeaders": ["*"],
+    "allowedHeaders": [
+      "authorization",
+      "content-type",
+      "x-amz-content-sha256",
+      "x-amz-date"
+    ],
     "exposeHeaders": ["ETag"],
     "maxAgeSeconds": 3600
   }
