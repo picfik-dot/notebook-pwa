@@ -60,10 +60,10 @@ request(f'{api_url}/b2api/v2/b2_update_bucket', {
     'bucketType': bucket['bucketType'],
     'corsRules': CORS_RULES,
 }, token=auth_token, stage='b2_update_bucket')
-verified = request(f'{api_url}/b2api/v2/b2_get_bucket', {
+verified_buckets = request(f'{api_url}/b2api/v2/b2_list_buckets', {
     'accountId': account_id,
-    'bucketId': bucket['bucketId'],
-}, token=auth_token, stage='b2_get_bucket')
+}, token=auth_token, stage='b2_list_buckets_verification')['buckets']
+verified = next(item for item in verified_buckets if item['bucketId'] == bucket['bucketId'])
 actual_rules = verified.get('corsRules') or []
 if actual_rules != CORS_RULES:
     raise SystemExit(f'B2 返回的 CORS 规则与本地配置不一致：{json.dumps(actual_rules, ensure_ascii=False)}')
