@@ -60,4 +60,11 @@ request(f'{api_url}/b2api/v2/b2_update_bucket', {
     'bucketType': bucket['bucketType'],
     'corsRules': CORS_RULES,
 }, token=auth_token, stage='b2_update_bucket')
-print(f'已为 {BUCKET_NAME} 配置 CORS，允许 GitHub Pages 和本地开发地址。')
+verified = request(f'{api_url}/b2api/v2/b2_get_bucket', {
+    'accountId': account_id,
+    'bucketId': bucket['bucketId'],
+}, token=auth_token, stage='b2_get_bucket')
+actual_rules = verified.get('corsRules') or []
+if actual_rules != CORS_RULES:
+    raise SystemExit(f'B2 返回的 CORS 规则与本地配置不一致：{json.dumps(actual_rules, ensure_ascii=False)}')
+print(f'已为 {BUCKET_NAME} 配置并验证 CORS，允许 GitHub Pages 和本地开发地址。')
