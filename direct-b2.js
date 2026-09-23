@@ -59,7 +59,10 @@
     return response;
   }
 
-  async function stateGet() { return (await request('GET', 'mindfold-state.json', new Uint8Array(), '', false)).json(); }
+  async function stateGet() {
+    try { return await (await request('GET', 'mindfold-state.json', new Uint8Array(), '', false)).json(); }
+    catch (error) { if (error.message.startsWith('B2 404:')) return {}; throw error; }
+  }
   async function statePut(value) { await request('PUT', 'mindfold-state.json', JSON.stringify(value, null, 2), '', false); }
   async function files() {
     const response = await request('GET', '', new Uint8Array(), '?list-type=2&prefix=attachments%2F', false);
@@ -72,6 +75,6 @@
   async function filePut(path, content) { const response = await request('PUT', path, fromBase64(content)); if (!response.ok) throw new Error(`B2 save ${response.status}`); }
   async function filePost(path, content) { const response = await request('PUT', path, fromBase64(content)); if (!response.ok) throw new Error(`B2 upload ${response.status}`); }
   function clear() { credentials = null; sessionStorage.removeItem('mindfold-b2-credentials'); }
-  async function testConnection() { await files(); return true; }
+  async function testConnection() { await stateGet(); return true; }
   window.MindfoldB2 = { stateGet, statePut, files, fileGet, filePut, filePost, askCredentials, testConnection, clear };
 })();
